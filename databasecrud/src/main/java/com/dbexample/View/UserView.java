@@ -30,6 +30,7 @@ public class UserView {
         System.out.println("3 - Update user");
         System.out.println("4 - Delete user");
         System.out.println("5 - Search user by id");
+        System.out.println("6 - Login");
         System.out.println("0 - Exit");
 
         System.out.print("Option: ");

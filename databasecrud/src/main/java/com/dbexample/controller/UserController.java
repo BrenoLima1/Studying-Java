@@ -37,4 +37,8 @@ public class UserController {
     public List<User> readAllUsers() {
         return userDAO.readAllUsers();
     }
+
+    public boolean validateUser(String username, String password) {
+        return userDAO.validateUser(username, password);
+    }
 }

@@ -19,5 +19,5 @@ public interface IUserDAO {
     public User readUser(int id);
     public boolean updateUser(int id, User user);
     public boolean delete(int id);
-
+    public boolean validateUser(String username, String password);
 }

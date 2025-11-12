@@ -48,6 +48,16 @@ while (running) {
             } else {
                 view.printMessage("User not found.");
             }   }
+        case 6 -> {
+            view.printMessage("Enter the user login: ");
+            String username = view.scanner.nextLine();
+            view.printMessage("Enter the user password: ");
+            String password = view.scanner.nextLine();
+            if(controller.validateUser(username, password)){
+                view.printMessage("Login successful!");
+            }else{
+                view.printMessage("Invalid credentials.");
+            }    }
         case 0 -> {
             running = false;
             view.printMessage("Goodbye...");

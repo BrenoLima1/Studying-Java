@@ -10,8 +10,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import org.mindrot.jbcrypt.BCrypt;
 
+import org.mindrot.jbcrypt.BCrypt;
 
 import com.dbexample.config.Connect;
 import com.dbexample.model.User;
@@ -120,6 +120,23 @@ public class UserDAO implements IUserDAO {
         String email = rs.getString("email");
         String password = rs.getString("password");
         return new User(id, name, username, email, password);
+    }
+
+    @Override
+    public boolean validateUser(String username, String password) {
+        String sql = "SELECT password FROM user WHERE login = ?";
+        try (Connection conn = Connect.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, username);
+            try (var rs = stmt.executeQuery()) {
+                if(rs.next()){
+                    String hashedPassword = rs.getString("password");
+                    return BCrypt.checkpw(password, hashedPassword);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return false;
     }
 
 }
