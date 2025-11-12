@@ -74,4 +74,16 @@ public class UserView {
         scanner.close();
     }
 
+    public String readUsername() {
+        System.out.print("Username: ");
+        String username = scanner.nextLine();
+        return username;
+    }
+
+    public String readPassword() {
+        System.out.print("Password: ");
+        String password = scanner.nextLine();
+        return password;
+    }
+
 }

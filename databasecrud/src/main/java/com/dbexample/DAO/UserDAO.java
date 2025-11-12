@@ -85,10 +85,12 @@ public class UserDAO implements IUserDAO {
     public boolean updateUser(int id, User user) {
         String sql = "UPDATE user SET name = ?, login = ?, email = ?, password = ? WHERE iduser = ?";
         try (Connection conn = Connect.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            String hashPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
             stmt.setString(1, user.getName());
             stmt.setString(2, user.getUsername());
             stmt.setString(3, user.getEmail());
-            stmt.setString(4, user.getPassword());
+            stmt.setString(4, hashPassword);
+
             stmt.setInt(5, id);
 
             int rows = stmt.executeUpdate();
