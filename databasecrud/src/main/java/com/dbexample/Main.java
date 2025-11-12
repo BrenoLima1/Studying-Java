@@ -14,30 +14,30 @@ while (running) {
     int option = view.readMenuOption();
 
     switch (option) {
-        case 1:
-            // view.printAllUsers(controller.getAllUsers());
-            break;
-        case 2:
+        case 1 -> view.printAllUsers(controller.readAllUsers());
+        case 2 -> {
             User novo = view.readUser();
             if (controller.createUser(novo)) {
                 view.printMessage("User created successfully!");
             } else {
                 view.printMessage("Error creating user.");
-            }
-            break;
-        case 3:
-           int idUser = view.readUserID();
+            }   }
+        case 3 -> {
+            int idUser = view.readUserID();
             User userUpdate = view.readUser();
             if (controller.updateUser(idUser, userUpdate)) {
                 view.printMessage("User updated successfully!");
             } else {
                 view.printMessage("Error updating user.");
-            }
-            break;
-        case 4:
-            view.printMessage("Delete is still not implemented.");
-            break;
-        case 5:
+            }   }
+        case 4 -> {
+            int idUserDelete = view.readUserID();
+            if(controller.deleteUser(idUserDelete)){
+                view.printMessage("User deleted successfully!");
+            }else{
+                view.printMessage("Error deleting user.");
+            }    }
+        case 5 -> {
             view.printMessage("Enter the user id: ");
             int id = view.scanner.nextInt();
             view.scanner.nextLine();
@@ -47,15 +47,12 @@ while (running) {
                 view.printUser(user);
             } else {
                 view.printMessage("User not found.");
-            }
-            break;
-        case 0:
+            }   }
+        case 0 -> {
             running = false;
             view.printMessage("Goodbye...");
-            break;
-        default:
-            view.printMessage("Invalid option!");
-            break;
+                }
+        default -> view.printMessage("Invalid option!");
     }
 }
 view.closeScanner();

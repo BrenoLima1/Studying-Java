@@ -4,6 +4,7 @@
  */
 package com.dbexample.View;
 
+import java.util.List;
 import java.util.Scanner;
 
 import com.dbexample.model.User;
@@ -35,6 +36,12 @@ public class UserView {
         int option = scanner.nextInt();
         scanner.nextLine(); // consome o ENTER
         return option; // devolve a escolha para o Main/Controller
+    }
+
+    public void printAllUsers(List<User> users) {
+        for (User user : users) {
+            System.out.println("\n" + user + "\n");
+        }
     }
 
     public User readUser() {

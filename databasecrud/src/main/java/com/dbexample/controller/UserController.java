@@ -5,6 +5,8 @@
 
 package com.dbexample.controller;
 
+import java.util.List;
+
 import com.dbexample.DAO.UserDAO;
 import com.dbexample.model.User;
 
@@ -28,4 +30,11 @@ public class UserController {
         return userDAO.updateUser(id, user);
     }
 
+    public boolean deleteUser(int id) {
+        return userDAO.delete(id);
+    }
+
+    public List<User> readAllUsers() {
+        return userDAO.readAllUsers();
+    }
 }
