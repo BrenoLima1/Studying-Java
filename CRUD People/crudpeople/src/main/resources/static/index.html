@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>CRUD People</title>
+    <style>
+        li:hover {
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Person Registration</h1>
+    <form id="personForm">
+        <input type="text" id="name" placeholder="Nome" required>
+        <input type="number" id="age" placeholder="Idade" required>
+        <button type="submit">Register</button>
+    </form>
+
+    <h2>List of People</h2>
+    <ul id="personList"></ul>
+
+    <script>
+        const form = document.getElementById('personForm');
+        const list = document.getElementById('personList');
+        let btnUpdate = null;
+        let currentPersonId = null;
+
+        // --- CREATE ---
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const age = document.getElementById('age').value;
+
+            await fetch('/api/persons', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, age })
+            });
+
+            form.reset();
+            loadPersons();
+        });
+
+        // --- READ ---
+        async function loadPersons() {
+            const response = await fetch('/api/persons');
+            const persons = await response.json();
+
+            while (list.firstChild) {
+                list.removeChild(list.firstChild);
+            }
+
+            persons.forEach(person => {
+                const listItem = document.createElement('li');
+                listItem.id = person.id;
+
+                const text = document.createTextNode(`${person.name} - ${person.age} anos `);
+                listItem.appendChild(text);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'X';
+                deleteBtn.addEventListener('click', () => deletePerson(person.id));
+
+                listItem.addEventListener('click', () => updatePerson(person));
+
+                listItem.appendChild(deleteBtn);
+                list.appendChild(listItem);
+            });
+        }
+
+        // --- DELETE ---
+        async function deletePerson(id) {
+            await fetch(`/api/persons/${id}`, { method: 'DELETE' });
+            form.reset();
+
+            if (btnUpdate) {
+                btnUpdate.remove();
+                btnUpdate = null;
+            }
+
+            loadPersons();
+        }
+
+        // --- UPDATE ---
+        function updatePerson(person) {
+            document.getElementById('name').value = person.name;
+            document.getElementById('age').value = person.age;
+            currentPersonId = person.id;
+
+            if (!btnUpdate) {
+                btnUpdate = document.createElement('button');
+                btnUpdate.textContent = 'Update';
+                btnUpdate.id = 'btnUpdate';
+                btnUpdate.type = 'button';
+                form.appendChild(btnUpdate);
+
+                btnUpdate.addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    btnUpdate.remove();
+                    btnUpdate = null;
+
+                    const name = document.getElementById('name').value;
+                    const age = document.getElementById('age').value;
+
+                    await fetch(`/api/persons/update/${currentPersonId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, age })
+                    });
+
+                    form.reset();
+                    loadPersons();
+                });
+            }
+        }
+
+        loadPersons();
+
+    </script>
+</body>
+
+</html>
