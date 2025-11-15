@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Task Manager</title>
     <link rel="stylesheet" href="./style/login.css">
 </head>
+
 <body>
     <div class="login-container">
         <h2>Login</h2>
@@ -18,5 +20,23 @@
             Don't have an account? <a href="register.html">Register here</a>
         </div>
     </div>
+    <script>
+        const authService = new AuthService();
+
+        document.querySelector("form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const username = e.target[0].value;
+            const password = e.target[1].value;
+
+            try {
+                const user = await authService.login(username, password);
+                alert("Login successful!");
+                window.location.href = "tasks.html"; // redireciona para página de tarefas
+            } catch (err) {
+                alert(err.message);
+            }
+        });
+    </script>
 </body>
+
 </html>
