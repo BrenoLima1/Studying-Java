@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integração com Spring Boot</title>
+    <script src="js/app.js" defer></script>
+    <style>
+        body{
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 20px;
+        }
+        .container{
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        button, input{
+            padding: 8px;
+            margin: 5px 0;
+        }
+        .result-box{
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            min-height: 20px;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Integração - Front e Back-end</h1>
+        <!-- GET -->
+        <button id="get" onclick="buscarMensagem()">Buscar mensagem</button>
+        <div class="result-box" id="resultado-get"></div>
+
+        <!-- POST -->
+         <input type="text"  id="dados-input">
+         <button id="post" onclick="enviarDados()">Enviar dados</button>
+         <div class="result-box" id="resultado-post"></div>
+    </div>
+</body>
+</html>
