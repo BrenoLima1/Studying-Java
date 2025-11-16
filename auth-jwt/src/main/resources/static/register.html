@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Registration</title>
+  <style>
+    body { font-family: sans-serif; max-width: 520px; margin: 40px auto; }
+    .card { border: 1px solid #ddd; padding: 16px; border-radius: 8px; }
+    .row { margin-bottom: 10px; }
+    .error { color: #b00020; }
+    .success { color: #0f7b0f; }
+  </style>
+</head>
+<body>
+  <h1>Register</h1>
+
+  <div class="card">
+    <form id="register-form">
+      <div class="row">
+        <label>Username</label>
+        <input type="text" name="username" required />
+      </div>
+      <div class="row">
+        <label>Password</label>
+        <input type="password" name="password" required />
+      </div>
+      <button type="submit">Sign Up</button>
+    </form>
+    <p class="error" id="register-error"></p>
+    <p class="success" id="register-success"></p>
+    <p>Already have an account? <a href="/index.html">Go to Login</a></p>
+  </div>
+
+  <script>
+    const form = document.getElementById('register-form');
+    const error = document.getElementById('register-error');
+    const success = document.getElementById('register-success');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      error.textContent = '';
+      success.textContent = '';
+
+      const fd = new FormData(form);
+      const username = fd.get('username');
+      const password = fd.get('password');
+
+      try {
+        const res = await fetch('/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || 'Registration failed');
+        }
+        success.textContent = 'User created successfully. You can now log in.';
+      } catch (err) {
+        error.textContent = err.message || 'Registration failed';
+      }
+    });
+  </script>
+</body>
+</html>

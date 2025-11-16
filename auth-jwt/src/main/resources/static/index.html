@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>JWT Authentication</title>
+  <style>
+    body { font-family: sans-serif; max-width: 700px; margin: 40px auto; }
+    .card { border: 1px solid #ddd; padding: 16px; border-radius: 8px; margin-bottom: 20px; }
+    .row { margin-bottom: 10px; }
+    .hidden { display: none; }
+    .error { color: #b00020; }
+    .success { color: #0f7b0f; }
+    button { padding: 8px 12px; margin-top: 10px; }
+    input { width: 100%; padding: 8px; }
+    pre { background: #f7f7f7; padding: 8px; overflow: auto; }
+    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <h1>JWT Authentication</h1>
+
+  <!-- Login card -->
+  <div class="card" id="login-card">
+    <form id="login-form">
+      <div class="row">
+        <label>Username</label>
+        <input type="text" name="username" required />
+      </div>
+      <div class="row">
+        <label>Password</label>
+        <input type="password" name="password" required />
+      </div>
+      <button type="submit">Login</button>
+    </form>
+    <p class="error" id="login-error"></p>
+    <p>Don't have an account? <a href="/register.html">Register</a></p>
+  </div>
+
+  <!-- Authenticated card -->
+  <div class="card hidden" id="authed-card">
+    <h2>Welcome</h2>
+    <p class="success" id="login-success"></p>
+    <p><strong>Token:</strong></p>
+    <pre id="token-view"></pre>
+    <p><strong>User info:</strong></p>
+    <pre id="user-view"></pre>
+
+    <!-- Admin-only button -->
+    <button id="list-users-btn" class="hidden">List all users</button>
+
+    <!-- Users table -->
+    <table id="users-table" class="hidden">
+      <thead>
+        <tr><th>ID</th><th>Username</th><th>Role</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <button id="logout-btn">Logout</button>
+  </div>
+
+  <script>
+    const loginForm = document.getElementById('login-form');
+    const loginError = document.getElementById('login-error');
+    const loginCard = document.getElementById('login-card');
+    const authedCard = document.getElementById('authed-card');
+    const tokenView = document.getElementById('token-view');
+    const userView = document.getElementById('user-view');
+    const loginSuccess = document.getElementById('login-success');
+    const logoutBtn = document.getElementById('logout-btn');
+    const listUsersBtn = document.getElementById('list-users-btn');
+    const usersTable = document.getElementById('users-table');
+    const usersTbody = usersTable.querySelector('tbody');
+
+    // Helpers
+    function getToken() { return localStorage.getItem('token'); }
+    function setToken(token) { localStorage.setItem('token', token); }
+    function clearToken() { localStorage.removeItem('token'); localStorage.removeItem('role'); localStorage.removeItem('username'); }
+    function show(el) { el.classList.remove('hidden'); }
+    function hide(el) { el.classList.add('hidden'); }
+
+    async function fetchMe() {
+      const token = getToken();
+      if (!token) return null;
+      const res = await fetch('/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error(`Failed to fetch /auth/me: ${res.status}`);
+      return res.json();
+    }
+
+    async function handleLogin(username, password) {
+      const res = await fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Login failed');
+      }
+      return res.json(); // { token, username, role }
+    }
+
+    function renderAuthed(data, user) {
+      tokenView.textContent = data.token;
+      userView.textContent = JSON.stringify(user, null, 2);
+      loginSuccess.textContent = `Logged in as: ${data.username} (${data.role})`;
+      hide(loginCard);
+      show(authedCard);
+
+      if (data.role === "ROLE_ADMIN") {
+        show(listUsersBtn);
+      } else {
+        hide(listUsersBtn);
+      }
+    }
+
+    function renderLoggedOut() {
+      clearToken();
+      userView.textContent = '';
+      tokenView.textContent = '';
+      loginError.textContent = '';
+      hide(authedCard);
+      show(loginCard);
+      hide(usersTable);
+    }
+
+    // Initialization
+    (async function init() {
+      const token = getToken();
+      const role = localStorage.getItem('role');
+      const username = localStorage.getItem('username');
+      if (!token) return;
+      try {
+        const user = await fetchMe();
+        renderAuthed({ token, role, username }, user);
+      } catch {
+        renderLoggedOut();
+      }
+    })();
+
+    // Login submit
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      loginError.textContent = '';
+      const formData = new FormData(loginForm);
+      const username = formData.get('username');
+      const password = formData.get('password');
+
+      try {
+        const data = await handleLogin(username, password);
+        setToken(data.token);
+        localStorage.setItem('role', data.role);
+        localStorage.setItem('username', data.username);
+        const user = await fetchMe();
+        renderAuthed(data, user);
+      } catch (err) {
+        loginError.textContent = err.message || 'Login failed';
+      }
+    });
+
+    // Logout
+    logoutBtn.addEventListener('click', () => {
+      renderLoggedOut();
+    });
+
+    // List users (admin only)
+    listUsersBtn.addEventListener('click', async () => {
+      const token = getToken();
+      try {
+        const res = await fetch('/auth/users', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("Failed to fetch users");
+        const users = await res.json();
+
+        // Clear previous rows
+        while (usersTbody.firstChild) {
+          usersTbody.removeChild(usersTbody.firstChild);
+        }
+
+        // Build rows safely (no innerHTML)
+        users.forEach(u => {
+          const tr = document.createElement('tr');
+
+          const tdId = document.createElement('td');
+          tdId.textContent = u.id;
+
+          const tdUsername = document.createElement('td');
+          tdUsername.textContent = u.username;
+
+          const tdRole = document.createElement('td');
+          tdRole.textContent = u.role;
+
+          tr.appendChild(tdId);
+          tr.appendChild(tdUsername);
+          tr.appendChild(tdRole);
+
+          usersTbody.appendChild(tr);
+        });
+
+        show(usersTable);
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+  </script>
+</body>
+</html>
