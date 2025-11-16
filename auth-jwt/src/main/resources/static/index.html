@@ -77,7 +77,11 @@
     // Helpers
     function getToken() { return localStorage.getItem('token'); }
     function setToken(token) { localStorage.setItem('token', token); }
-    function clearToken() { localStorage.removeItem('token'); localStorage.removeItem('role'); localStorage.removeItem('username'); }
+    function clearToken() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('username');
+    }
     function show(el) { el.classList.remove('hidden'); }
     function hide(el) { el.classList.add('hidden'); }
 
@@ -180,7 +184,7 @@
           usersTbody.removeChild(usersTbody.firstChild);
         }
 
-        // Build rows safely (no innerHTML)
+        // Build rows safely
         users.forEach(u => {
           const tr = document.createElement('tr');
 
