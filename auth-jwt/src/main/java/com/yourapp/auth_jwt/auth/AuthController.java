@@ -1,11 +1,15 @@
 package com.yourapp.auth_jwt.auth;
 
 import java.util.List;
+import org.hibernate.query.Page;
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import com.yourapp.auth_jwt.security.JwtService;
@@ -14,7 +18,6 @@ import com.yourapp.auth_jwt.user.UserRepository;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
-
 
 
 @RestController
@@ -83,13 +86,15 @@ public class AuthController {
 //             .toList();
 // }
 
-@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+@PreAuthorize("hasRole('ADMIN')")
 @GetMapping("/users")
-public List<UserResponse> listUsers() {
-    return userRepository.findAll()
-            .stream()
-            .map(u -> new UserResponse(u.getId(), u.getUsername(), u.getRole()))
-            .toList();
+public org.springframework.data.domain.Page<UserResponse> listUsers(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size) {
+
+    PageRequest pageable = PageRequest.of(page, size);
+    return userRepository.findAll(pageable)
+            .map(u -> new UserResponse(u.getId(), u.getUsername(), u.getRole()));
 }
 
 }

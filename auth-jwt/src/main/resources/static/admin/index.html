@@ -1,103 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>Admin Panel</title>
+  <meta charset="UTF-8">
+  <title>Admin - Usuários</title>
   <style>
-    body { font-family: sans-serif; max-width: 700px; margin: 40px auto; }
-    h1 { margin-bottom: 20px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background-color: #f2f2f2; }
-    button { padding: 8px 12px; margin-top: 10px; }
-    .hidden { display: none; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    #pagination { margin-top: 15px; }
+    button { margin: 5px; }
   </style>
 </head>
 <body>
-  <h1>Admin Panel</h1>
+  <h1>Painel de Administração</h1>
 
-  <p id="welcome"></p>
+  <button id="listUsersBtn">Listar Usuários</button>
 
-  <button id="list-users-btn">List all users</button>
-
-  <table id="users-table" class="hidden">
+  <table id="usersTable" style="display:none;">
     <thead>
-      <tr><th>ID</th><th>Username</th><th>Role</th></tr>
+      <tr>
+        <th>ID</th>
+        <th>Usuário</th>
+        <th>Role</th>
+      </tr>
     </thead>
-    <tbody></tbody>
+    <tbody id="usersTbody"></tbody>
   </table>
 
-  <button id="logout-btn">Logout</button>
+  <div id="pagination" style="display:none;">
+    <button id="prev-btn">Anterior</button>
+    <span id="page-info"></span>
+    <button id="next-btn">Próxima</button>
+  </div>
 
-  <script>
-    const welcome = document.getElementById('welcome');
-    const listUsersBtn = document.getElementById('list-users-btn');
-    const usersTable = document.getElementById('users-table');
-    const usersTbody = usersTable.querySelector('tbody');
-    const logoutBtn = document.getElementById('logout-btn');
-
-    function getToken() { return localStorage.getItem('token'); }
-    function clearToken() {
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
-      localStorage.removeItem('username');
-    }
-    function show(el) { el.classList.remove('hidden'); }
-    function hide(el) { el.classList.add('hidden'); }
-
-    // Show welcome message
-    const username = localStorage.getItem('username');
-    const role = localStorage.getItem('role');
-    if (username && role) {
-      welcome.textContent = `Logged in as: ${username} (${role})`;
-    }
-
-    // List users
-    listUsersBtn.addEventListener('click', async () => {
-      const token = getToken();
-      try {
-        const res = await fetch('/auth/users', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error("Failed to fetch users");
-        const users = await res.json();
-
-        // Clear previous rows
-        while (usersTbody.firstChild) {
-          usersTbody.removeChild(usersTbody.firstChild);
-        }
-
-        // Build rows safely
-        users.forEach(u => {
-          const tr = document.createElement('tr');
-
-          const tdId = document.createElement('td');
-          tdId.textContent = u.id;
-
-          const tdUsername = document.createElement('td');
-          tdUsername.textContent = u.username;
-
-          const tdRole = document.createElement('td');
-          tdRole.textContent = u.role;
-
-          tr.appendChild(tdId);
-          tr.appendChild(tdUsername);
-          tr.appendChild(tdRole);
-
-          usersTbody.appendChild(tr);
-        });
-
-        show(usersTable);
-      } catch (err) {
-        alert(err.message);
-      }
-    });
-
-    // Logout
-    logoutBtn.addEventListener('click', () => {
-      clearToken();
-      window.location.href = "/index.html"; // back to login page
-    });
-  </script>
+  <script src="admin.js"></script>
 </body>
+<script>
+  const usersTable = document.getElementById("usersTable");
+const usersTbody = document.getElementById("usersTbody");
+const listUsersBtn = document.getElementById("listUsersBtn");
+const paginationDiv = document.getElementById("pagination");
+const pageInfo = document.getElementById("page-info");
+const prevBtn = document.getElementById("prev-btn");
+const nextBtn = document.getElementById("next-btn");
+
+let currentPage = 0;
+const pageSize = 5; // quantidade de usuários por página
+let totalPages = 0;
+
+function getToken() {
+  return localStorage.getItem("token"); // token salvo no login
+}
+
+async function loadUsers(page = 0) {
+  const token = getToken();
+  try {
+    const res = await fetch(`/auth/users?page=${page}&size=${pageSize}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!res.ok) throw new Error("Falha ao buscar usuários");
+
+    const data = await res.json();
+
+    // limpa tabela
+    usersTbody.innerHTML = "";
+
+    // preenche tabela
+    data.content.forEach(u => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${u.id}</td><td>${u.username}</td><td>${u.role}</td>`;
+      usersTbody.appendChild(tr);
+    });
+
+    // mostra tabela e paginação
+    usersTable.style.display = "table";
+    paginationDiv.style.display = "block";
+
+    // atualiza info de paginação
+    currentPage = data.number;
+    totalPages = data.totalPages;
+    pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages}`;
+
+    // habilita/desabilita botões
+    prevBtn.disabled = currentPage === 0;
+    nextBtn.disabled = currentPage + 1 >= totalPages;
+
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+// evento inicial
+listUsersBtn.addEventListener("click", () => loadUsers(0));
+
+// navegação
+prevBtn.addEventListener("click", () => {
+  if (currentPage > 0) loadUsers(currentPage - 1);
+});
+
+nextBtn.addEventListener("click", () => {
+  if (currentPage + 1 < totalPages) loadUsers(currentPage + 1);
+});
+</script>
 </html>
