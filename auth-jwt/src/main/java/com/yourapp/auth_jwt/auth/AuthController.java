@@ -63,35 +63,33 @@ public class AuthController {
                 (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(
-                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         return new UserResponse(user.getId(), user.getUsername(), user.getRole());
     }
 
-    // @GetMapping("/users")
-    // public List<UserResponse> listUsers() {
-    // String username = (String)
-    // SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    // User currentUser = userRepository.findByUsername(username)
-    // .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+//    @GetMapping("/users")
+// public List<UserResponse> listUsers() {
+//     String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//     User currentUser = userRepository.findByUsername(username)
+//             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-    // if (!"ROLE_ADMIN".equals(currentUser.getRole())) {
-    // throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
-    // }
+//     if (!"ROLE_ADMIN".equals(currentUser.getRole())) {
+//         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+//     }
 
-    // return userRepository.findAll()
-    // .stream()
-    // .map(u -> new UserResponse(u.getId(), u.getUsername(), u.getRole()))
-    // .toList();
-    // }
+//     return userRepository.findAll()
+//             .stream()
+//             .map(u -> new UserResponse(u.getId(), u.getUsername(), u.getRole()))
+//             .toList();
+// }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/users")
-    public List<UserResponse> listUsers() {
-        return userRepository.findAll()
-                .stream()
-                .map(u -> new UserResponse(u.getId(), u.getUsername(), u.getRole()))
-                .toList();
-    }
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+@GetMapping("/users")
+public List<UserResponse> listUsers() {
+    return userRepository.findAll()
+            .stream()
+            .map(u -> new UserResponse(u.getId(), u.getUsername(), u.getRole()))
+            .toList();
+}
 
 }
