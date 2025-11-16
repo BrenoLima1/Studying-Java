@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Admin - Usuários</title>
+  <title>Admin - Users</title>
   <style>
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
@@ -19,7 +19,7 @@
     <thead>
       <tr>
         <th>ID</th>
-        <th>Usuário</th>
+        <th>User</th>
         <th>Role</th>
       </tr>
     </thead>
@@ -27,9 +27,9 @@
   </table>
 
   <div id="pagination" style="display:none;">
-    <button id="prev-btn">Anterior</button>
+    <button id="prev-btn">Previous</button>
     <span id="page-info"></span>
-    <button id="next-btn">Próxima</button>
+    <button id="next-btn">Next</button>
   </div>
 
 <script>
@@ -56,7 +56,7 @@
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      if (!res.ok) throw new Error("Falha ao buscar usuários");
+      if (!res.ok) throw new Error("Failed to fetch users");
 
       const data = await res.json();
 
@@ -117,7 +117,7 @@
 
       currentPage = data.number;
       totalPages = data.totalPages;
-      pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages}`;
+      pageInfo.textContent = `Page ${currentPage + 1} of ${totalPages}`;
 
       prevBtn.disabled = currentPage === 0;
       nextBtn.disabled = currentPage + 1 >= totalPages;

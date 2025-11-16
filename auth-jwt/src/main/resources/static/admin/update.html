@@ -50,10 +50,10 @@
       const res = await fetch(`/auth/users?page=0&size=100`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (!res.ok) throw new Error("Falha ao carregar usuários");
+      if (!res.ok) throw new Error("Failed to fetch users");
       const data = await res.json();
       const user = data.content.find(u => u.id == userId);
-      if (!user) throw new Error("Usuário não encontrado");
+      if (!user) throw new Error("User not found");
 
       document.getElementById("username").value = user.username;
       document.getElementById("role").value = user.role;
@@ -81,9 +81,9 @@
         body: JSON.stringify({ username, role })
       });
 
-      if (!res.ok) throw new Error("Falha ao atualizar usuário");
+      if (!res.ok) throw new Error("Failed to update user");
 
-      message.textContent = "Usuário atualizado com sucesso!";
+      message.textContent = "User updated successfully!";
       message.className = "success";
     } catch (err) {
       message.textContent = err.message;
