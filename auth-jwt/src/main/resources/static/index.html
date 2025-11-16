@@ -177,7 +177,8 @@
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!res.ok) throw new Error("Failed to fetch users");
-        const users = await res.json();
+        const data = await res.json();
+        const users = data.content;
 
         // Clear previous rows
         while (usersTbody.firstChild) {

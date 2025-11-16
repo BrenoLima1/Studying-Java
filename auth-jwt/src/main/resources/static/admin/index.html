@@ -11,9 +11,9 @@
   </style>
 </head>
 <body>
-  <h1>Painel de Administração</h1>
+  <h1>Administration Panel</h1>
 
-  <button id="listUsersBtn">Listar Usuários</button>
+  <button id="listUsersBtn">List Users</button>
 
   <table id="usersTable" style="display:none;">
     <thead>
@@ -32,74 +32,110 @@
     <button id="next-btn">Próxima</button>
   </div>
 
-  <script src="admin.js"></script>
-</body>
 <script>
   const usersTable = document.getElementById("usersTable");
-const usersTbody = document.getElementById("usersTbody");
-const listUsersBtn = document.getElementById("listUsersBtn");
-const paginationDiv = document.getElementById("pagination");
-const pageInfo = document.getElementById("page-info");
-const prevBtn = document.getElementById("prev-btn");
-const nextBtn = document.getElementById("next-btn");
+  const usersTbody = document.getElementById("usersTbody");
+  const listUsersBtn = document.getElementById("listUsersBtn");
+  const paginationDiv = document.getElementById("pagination");
+  const pageInfo = document.getElementById("page-info");
+  const prevBtn = document.getElementById("prev-btn");
+  const nextBtn = document.getElementById("next-btn");
 
-let currentPage = 0;
-const pageSize = 5; // quantidade de usuários por página
-let totalPages = 0;
+  let currentPage = 0;
+  const pageSize = 5; 
+  let totalPages = 0;
 
-function getToken() {
-  return localStorage.getItem("token"); // token salvo no login
-}
-
-async function loadUsers(page = 0) {
-  const token = getToken();
-  try {
-    const res = await fetch(`/auth/users?page=${page}&size=${pageSize}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    if (!res.ok) throw new Error("Falha ao buscar usuários");
-
-    const data = await res.json();
-
-    // limpa tabela
-    usersTbody.innerHTML = "";
-
-    // preenche tabela
-    data.content.forEach(u => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${u.id}</td><td>${u.username}</td><td>${u.role}</td>`;
-      usersTbody.appendChild(tr);
-    });
-
-    // mostra tabela e paginação
-    usersTable.style.display = "table";
-    paginationDiv.style.display = "block";
-
-    // atualiza info de paginação
-    currentPage = data.number;
-    totalPages = data.totalPages;
-    pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages}`;
-
-    // habilita/desabilita botões
-    prevBtn.disabled = currentPage === 0;
-    nextBtn.disabled = currentPage + 1 >= totalPages;
-
-  } catch (err) {
-    alert(err.message);
+  function getToken() {
+    return localStorage.getItem("token"); 
   }
-}
 
-// evento inicial
-listUsersBtn.addEventListener("click", () => loadUsers(0));
+  async function loadUsers(page = 0) {
+    const token = getToken();
+    try {
+      const res = await fetch(`/auth/users?page=${page}&size=${pageSize}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-// navegação
-prevBtn.addEventListener("click", () => {
-  if (currentPage > 0) loadUsers(currentPage - 1);
+      if (!res.ok) throw new Error("Falha ao buscar usuários");
+
+      const data = await res.json();
+
+      // limpa tabela
+      while (usersTbody.firstChild) {
+        usersTbody.removeChild(usersTbody.firstChild);
+      }
+
+     data.content.forEach(u => {
+  const tr = document.createElement("tr");
+
+  const tdId = document.createElement("td");
+  tdId.textContent = u.id;
+
+  const tdUsername = document.createElement("td");
+  tdUsername.textContent = u.username;
+
+  const tdRole = document.createElement("td");
+  tdRole.textContent = u.role;
+
+  const tdDelete = document.createElement("td");
+  const deleteBtn = document.createElement("button");
+  deleteBtn.textContent = "Delete";
+  deleteBtn.addEventListener("click", async () => {
+    try {
+      const res = await fetch(`/auth/users/${u.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error("Deletion failed");
+      loadUsers(currentPage);
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+  tdDelete.appendChild(deleteBtn);
+
+  const tdUpdate = document.createElement("td");
+  const updateBtn = document.createElement("button");
+  updateBtn.textContent = "Update";
+  updateBtn.addEventListener("click", () => {
+
+    window.location.href = `update.html?id=${u.id}`;
+  });
+  tdUpdate.appendChild(updateBtn);
+
+  tr.appendChild(tdId);
+  tr.appendChild(tdUsername);
+  tr.appendChild(tdRole);
+  tr.appendChild(tdDelete);
+  tr.appendChild(tdUpdate);
+
+  usersTbody.appendChild(tr);
 });
 
-nextBtn.addEventListener("click", () => {
-  if (currentPage + 1 < totalPages) loadUsers(currentPage + 1);
-});
+      usersTable.style.display = "table";
+      paginationDiv.style.display = "block";
+
+      currentPage = data.number;
+      totalPages = data.totalPages;
+      pageInfo.textContent = `Página ${currentPage + 1} de ${totalPages}`;
+
+      prevBtn.disabled = currentPage === 0;
+      nextBtn.disabled = currentPage + 1 >= totalPages;
+
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
+  listUsersBtn.addEventListener("click", () => loadUsers(0));
+
+  prevBtn.addEventListener("click", () => {
+    if (currentPage > 0) loadUsers(currentPage - 1);
+  });
+
+  nextBtn.addEventListener("click", () => {
+    if (currentPage + 1 < totalPages) loadUsers(currentPage + 1);
+  });
 </script>
+</body>
 </html>

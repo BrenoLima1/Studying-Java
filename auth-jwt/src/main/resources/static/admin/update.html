@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Update User</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
+    form { display: flex; flex-direction: column; gap: 12px; }
+    label { font-weight: bold; }
+    input, select { padding: 8px; }
+    button { padding: 10px; }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Update User</h1>
+
+  <form id="updateForm">
+    <div>
+      <label for="username">User</label>
+      <input type="text" id="username" name="username" required />
+    </div>
+    <div>
+      <label for="role">Role</label>
+      <select id="role" name="role">
+        <option value="ROLE_USER">ROLE_USER</option>
+        <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+      </select>
+    </div>
+    <button type="submit">Update</button>
+  </form>
+
+  <p id="message"></p>
+
+<script>
+  const form = document.getElementById("updateForm");
+  const message = document.getElementById("message");
+
+  function getToken() {
+    return localStorage.getItem("token");
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const userId = params.get("id");
+
+  async function loadUser() {
+    const token = getToken();
+    try {
+      const res = await fetch(`/auth/users?page=0&size=100`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error("Falha ao carregar usuários");
+      const data = await res.json();
+      const user = data.content.find(u => u.id == userId);
+      if (!user) throw new Error("Usuário não encontrado");
+
+      document.getElementById("username").value = user.username;
+      document.getElementById("role").value = user.role;
+    } catch (err) {
+      message.textContent = err.message;
+      message.className = "error";
+    }
+  }
+
+  loadUser();
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const token = getToken();
+    const username = document.getElementById("username").value;
+    const role = document.getElementById("role").value;
+
+    try {
+      const res = await fetch(`/auth/users/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ username, role })
+      });
+
+      if (!res.ok) throw new Error("Falha ao atualizar usuário");
+
+      message.textContent = "Usuário atualizado com sucesso!";
+      message.className = "success";
+    } catch (err) {
+      message.textContent = err.message;
+      message.className = "error";
+    }
+  });
+</script>
+</body>
+</html>
